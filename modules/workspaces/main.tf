@@ -130,13 +130,14 @@ resource "aws_workspaces_workspace" "student" {
   bundle_id    = var.bundle_id
   user_name    = each.value.username
 
-  # *** KEY SETTING: AutoStop after N minutes of inactivity ***
+  # AutoStop - Terraform enforces 60-min intervals minimum
+  # Actual 10-min override applied via local-exec provisioner below
   workspace_properties {
     compute_type_name                         = "STANDARD"
     user_volume_size_gib                      = var.user_volume_size
     root_volume_size_gib                      = var.root_volume_size
     running_mode                              = var.running_mode
-    running_mode_auto_stop_timeout_in_minutes = var.running_mode_auto_stop_timeout
+    running_mode_auto_stop_timeout_in_minutes = 60
   }
 
   # Volume encryption
@@ -164,11 +165,38 @@ resource "aws_workspaces_workspace" "student" {
 
   lifecycle {
     ignore_changes = [
-      # Ignore changes to workspace_properties that might be modified via console
       workspace_properties[0].running_mode,
+      workspace_properties[0].running_mode_auto_stop_timeout_in_minutes,
     ]
   }
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OVERRIDE AUTO-STOP TO ACTUAL TIMEOUT (e.g., 10 min)
+# Terraform provider only supports 60-min intervals, so we use AWS CLI
+# ─────────────────────────────────────────────────────────────────────────────
+resource "terraform_data" "set_autostop_timeout" {
+  for_each = aws_workspaces_workspace.student
+
+  triggers_replace = [
+    each.value.id,
+    var.running_mode_auto_stop_timeout
+  ]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Setting AutoStop timeout to ${var.running_mode_auto_stop_timeout} min for ${each.value.id} (${each.key})"
+      aws workspaces modify-workspace-properties \
+        --workspace-id ${each.value.id} \
+        --workspace-properties "RunningMode=AUTO_STOP,RunningModeAutoStopTimeoutInMinutes=${var.running_mode_auto_stop_timeout}" \
+        --region ${data.aws_region.current.name} 2>&1 || echo "Warning: Could not set timeout for ${each.value.id}"
+    EOT
+  }
+
+  depends_on = [aws_workspaces_workspace.student]
+}
+
+data "aws_region" "current" {}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # VARIABLES

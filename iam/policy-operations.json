@@ -1,0 +1,104 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Lambda",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction", "lambda:DeleteFunction",
+        "lambda:GetFunction", "lambda:GetFunctionConfiguration",
+        "lambda:UpdateFunction*", "lambda:InvokeFunction",
+        "lambda:AddPermission", "lambda:RemovePermission",
+        "lambda:GetPolicy", "lambda:ListVersionsByFunction",
+        "lambda:ListTags", "lambda:TagResource", "lambda:UntagResource"
+      ],
+      "Resource": "arn:aws:lambda:ap-south-1:657246200133:function:sap-training-lab-*"
+    },
+    {
+      "Sid": "EventBridge",
+      "Effect": "Allow",
+      "Action": [
+        "events:PutRule", "events:DeleteRule", "events:DescribeRule",
+        "events:PutTargets", "events:RemoveTargets",
+        "events:ListTargetsByRule", "events:ListTagsForResource",
+        "events:TagResource", "events:UntagResource"
+      ],
+      "Resource": "arn:aws:events:ap-south-1:657246200133:rule/sap-training-lab-*"
+    },
+    {
+      "Sid": "CloudWatch",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:PutDashboard", "cloudwatch:DeleteDashboards",
+        "cloudwatch:GetDashboard", "cloudwatch:ListDashboards",
+        "cloudwatch:PutMetricAlarm", "cloudwatch:DeleteAlarms",
+        "cloudwatch:DescribeAlarms", "cloudwatch:ListTagsForResource",
+        "cloudwatch:TagResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup", "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups", "logs:PutRetentionPolicy",
+        "logs:ListTagsForResource", "logs:TagResource", "logs:UntagResource",
+        "logs:ListTagsLogGroup", "logs:TagLogGroup",
+        "logs:CreateLogStream", "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:ap-south-1:657246200133:log-group:*"
+    },
+    {
+      "Sid": "SNS",
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic", "sns:DeleteTopic",
+        "sns:GetTopicAttributes", "sns:SetTopicAttributes",
+        "sns:Subscribe", "sns:Unsubscribe",
+        "sns:ListSubscriptionsByTopic",
+        "sns:ListTagsForResource", "sns:TagResource"
+      ],
+      "Resource": "arn:aws:sns:ap-south-1:657246200133:sap-training-lab-*"
+    },
+    {
+      "Sid": "IAMRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole", "iam:DeleteRole", "iam:GetRole",
+        "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+        "iam:ListRolePolicies", "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:TagRole", "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::657246200133:role/sap-training-lab-*"
+    },
+    {
+      "Sid": "WorkSpacesServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::657246200133:role/aws-service-role/workspaces.amazonaws.com/*"
+    },
+    {
+      "Sid": "TerraformState",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
+        "s3:ListBucket", "s3:GetBucketVersioning", "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::lanciere-terraform-state-657246200133",
+        "arn:aws:s3:::lanciere-terraform-state-657246200133/*"
+      ]
+    },
+    {
+      "Sid": "TerraformLock",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem", "dynamodb:PutItem",
+        "dynamodb:DeleteItem", "dynamodb:DescribeTable"
+      ],
+      "Resource": "arn:aws:dynamodb:ap-south-1:657246200133:table/terraform-lock"
+    }
+  ]
+}

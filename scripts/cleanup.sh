@@ -64,10 +64,18 @@ if [ "$CLEANUP_BOOTSTRAP" = "yes" ]; then
   echo -e "${GREEN}  ✅ DynamoDB table deleted.${NC}"
 
   echo -e "${YELLOW}[Step 2c] Deleting IAM user and policy...${NC}"
-  # Detach policy
-  aws iam detach-user-policy \
-    --user-name terraform-sap-workspaces \
-    --policy-arn "arn:aws:iam::${AWS_ACCOUNT_ID}:policy/SAPWorkSpacesTerraformPolicy" 2>/dev/null || true
+  # Detach policies
+  for PNAME in SAPWorkSpacesInfraPolicy SAPWorkSpacesOpsPolicy; do
+    POLICY_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:policy/${PNAME}"
+    aws iam detach-user-policy \
+      --user-name terraform-sap-workspaces \
+      --policy-arn "${POLICY_ARN}" 2>/dev/null || true
+    # Delete policy versions then policy
+    for VER in $(aws iam list-policy-versions --policy-arn "${POLICY_ARN}" --query 'Versions[?!IsDefaultVersion].VersionId' --output text 2>/dev/null); do
+      aws iam delete-policy-version --policy-arn "${POLICY_ARN}" --version-id "$VER" 2>/dev/null || true
+    done
+    aws iam delete-policy --policy-arn "${POLICY_ARN}" 2>/dev/null || true
+  done
   
   # Delete access keys
   for KEY in $(aws iam list-access-keys --user-name terraform-sap-workspaces --query 'AccessKeyMetadata[].AccessKeyId' --output text 2>/dev/null); do
@@ -76,13 +84,6 @@ if [ "$CLEANUP_BOOTSTRAP" = "yes" ]; then
   
   # Delete user
   aws iam delete-user --user-name terraform-sap-workspaces 2>/dev/null || true
-  
-  # Delete policy (all versions first)
-  POLICY_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:policy/SAPWorkSpacesTerraformPolicy"
-  for VER in $(aws iam list-policy-versions --policy-arn "${POLICY_ARN}" --query 'Versions[?!IsDefaultVersion].VersionId' --output text 2>/dev/null); do
-    aws iam delete-policy-version --policy-arn "${POLICY_ARN}" --version-id "$VER" 2>/dev/null || true
-  done
-  aws iam delete-policy --policy-arn "${POLICY_ARN}" 2>/dev/null || true
   
   echo -e "${GREEN}  ✅ IAM resources cleaned up.${NC}"
 fi

@@ -184,33 +184,40 @@ fi
 # Create/Update policy
 echo -e "${YELLOW}  Attaching IAM policy...${NC}"
 
-POLICY_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:policy/${IAM_POLICY_NAME}"
-POLICY_EXISTS=$(aws iam get-policy --policy-arn "${POLICY_ARN}" 2>/dev/null && echo "yes" || echo "no")
+# Policy is split into 2 (AWS limit: 6144 bytes per policy)
+POLICIES=("SAPWorkSpacesInfraPolicy:iam/policy-infra.json" "SAPWorkSpacesOpsPolicy:iam/policy-operations.json")
 
-if [ "$POLICY_EXISTS" = "yes" ]; then
-  # Update existing policy (create new version)
-  aws iam create-policy-version \
-    --policy-arn "${POLICY_ARN}" \
-    --policy-document file://iam/sap-workspaces-terraform-policy.json \
-    --set-as-default \
-    --output text --query 'PolicyVersion.VersionId' 2>/dev/null || true
-  echo -e "${GREEN}  ✅ Policy updated.${NC}"
-else
-  aws iam create-policy \
-    --policy-name "${IAM_POLICY_NAME}" \
-    --policy-document file://iam/sap-workspaces-terraform-policy.json \
-    --description "Terraform policy for SAP Training Lab WorkSpaces deployment" \
-    --tags Key=Project,Value=${PROJECT} \
-    --output text --query 'Policy.Arn'
-  echo -e "${GREEN}  ✅ Policy '${IAM_POLICY_NAME}' created.${NC}"
-fi
+for POLICY_ENTRY in "${POLICIES[@]}"; do
+  POLICY_NAME="${POLICY_ENTRY%%:*}"
+  POLICY_FILE="${POLICY_ENTRY##*:}"
+  POLICY_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:policy/${POLICY_NAME}"
 
-# Attach policy to user
-aws iam attach-user-policy \
-  --user-name "${IAM_USER}" \
-  --policy-arn "${POLICY_ARN}" 2>/dev/null || true
+  POLICY_EXISTS=$(aws iam get-policy --policy-arn "${POLICY_ARN}" 2>/dev/null && echo "yes" || echo "no")
 
-echo -e "${GREEN}  ✅ Policy attached to user '${IAM_USER}'.${NC}"
+  if [ "$POLICY_EXISTS" = "yes" ]; then
+    aws iam create-policy-version \
+      --policy-arn "${POLICY_ARN}" \
+      --policy-document "file://${POLICY_FILE}" \
+      --set-as-default \
+      --output text --query 'PolicyVersion.VersionId' 2>/dev/null || true
+    echo -e "${GREEN}  ✅ Policy '${POLICY_NAME}' updated.${NC}"
+  else
+    aws iam create-policy \
+      --policy-name "${POLICY_NAME}" \
+      --policy-document "file://${POLICY_FILE}" \
+      --description "Terraform policy for SAP Training Lab (${POLICY_NAME})" \
+      --tags Key=Project,Value=${PROJECT} \
+      --output text --query 'Policy.Arn'
+    echo -e "${GREEN}  ✅ Policy '${POLICY_NAME}' created.${NC}"
+  fi
+
+  # Attach to user
+  aws iam attach-user-policy \
+    --user-name "${IAM_USER}" \
+    --policy-arn "${POLICY_ARN}" 2>/dev/null || true
+done
+
+echo -e "${GREEN}  ✅ Both policies attached to user '${IAM_USER}'.${NC}"
 
 # Create access keys (only if none exist)
 EXISTING_KEYS=$(aws iam list-access-keys --user-name "${IAM_USER}" --query 'length(AccessKeyMetadata)' --output text)
