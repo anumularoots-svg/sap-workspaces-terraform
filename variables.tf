@@ -64,12 +64,12 @@ variable "directory_name" {
 }
 
 variable "directory_size" {
-  description = "Size of the Simple AD directory (Small or Large)"
+  description = "Edition of AWS Managed Microsoft AD (Standard or Enterprise)"
   type        = string
-  default     = "Small"
+  default     = "Standard"
   validation {
-    condition     = contains(["Small", "Large"], var.directory_size)
-    error_message = "Directory size must be Small or Large."
+    condition     = contains(["Standard", "Enterprise"], var.directory_size)
+    error_message = "Directory size must be Standard or Enterprise (Managed Microsoft AD)."
   }
 }
 

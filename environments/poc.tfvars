@@ -15,7 +15,7 @@ enable_nat_gateway   = true
 
 # Directory
 directory_name = "sap-lab.local"
-directory_size = "Small"
+directory_size = "Standard"  # MicrosoftAD: "Standard" or "Enterprise"
 
 # WorkSpaces - POC (2 for Free Tier testing)
 student_count             = 2

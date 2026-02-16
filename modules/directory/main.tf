@@ -1,13 +1,14 @@
 ###############################################################################
-# MODULE: DIRECTORY SERVICE (AWS Simple AD)
+# MODULE: DIRECTORY SERVICE (AWS Managed Microsoft AD)
 # Provides user authentication for WorkSpaces
+# Note: Simple AD is NOT available in ap-south-1 (Mumbai)
 ###############################################################################
 
-resource "aws_directory_service_directory" "simple_ad" {
+resource "aws_directory_service_directory" "managed_ad" {
   name     = var.directory_name
   password = var.admin_password
-  size     = var.directory_size
-  type     = "SimpleAD"
+  edition  = var.directory_size   # "Standard" or "Enterprise"
+  type     = "MicrosoftAD"
 
   vpc_settings {
     vpc_id     = var.vpc_id
@@ -15,7 +16,7 @@ resource "aws_directory_service_directory" "simple_ad" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-simple-ad"
+    Name = "${var.project_name}-${var.environment}-managed-ad"
   }
 }
 
@@ -38,15 +39,15 @@ variable "subnet_ids" { type = list(string) }
 # ─────────────────────────────────────────────────────────────────────────────
 output "directory_id" {
   description = "Directory ID"
-  value       = aws_directory_service_directory.simple_ad.id
+  value       = aws_directory_service_directory.managed_ad.id
 }
 
 output "dns_ip_addresses" {
   description = "DNS IP addresses of the directory"
-  value       = aws_directory_service_directory.simple_ad.dns_ip_addresses
+  value       = aws_directory_service_directory.managed_ad.dns_ip_addresses
 }
 
 output "directory_name" {
   description = "Directory FQDN"
-  value       = aws_directory_service_directory.simple_ad.name
+  value       = aws_directory_service_directory.managed_ad.name
 }

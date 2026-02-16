@@ -15,7 +15,7 @@ enable_nat_gateway   = true
 
 # Directory
 directory_name = "sap-lab.local"
-directory_size = "Small"  # Small supports up to 500 users
+directory_size = "Standard"  # MicrosoftAD: "Standard" or "Enterprise"
 
 # WorkSpaces - PRODUCTION (40 students)
 student_count             = 40
