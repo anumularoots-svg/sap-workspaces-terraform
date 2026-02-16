@@ -86,6 +86,7 @@ module "directory" {
   project_name    = var.project_name
   environment     = var.environment
   directory_name  = var.directory_name
+  directory_type  = var.directory_type
   directory_size  = var.directory_size
   admin_password  = var.ad_admin_password
   vpc_id          = module.vpc.vpc_id

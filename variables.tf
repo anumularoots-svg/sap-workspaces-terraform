@@ -63,14 +63,20 @@ variable "directory_name" {
   default     = "sap-lab.local"
 }
 
-variable "directory_size" {
-  description = "Edition of AWS Managed Microsoft AD (Standard or Enterprise)"
+variable "directory_type" {
+  description = "Type of directory: SimpleAD (us-east-1) or MicrosoftAD (ap-south-1)"
   type        = string
-  default     = "Standard"
+  default     = "SimpleAD"
   validation {
-    condition     = contains(["Standard", "Enterprise"], var.directory_size)
-    error_message = "Directory size must be Standard or Enterprise (Managed Microsoft AD)."
+    condition     = contains(["SimpleAD", "MicrosoftAD"], var.directory_type)
+    error_message = "Directory type must be SimpleAD or MicrosoftAD."
   }
+}
+
+variable "directory_size" {
+  description = "Size/Edition: Small/Large for SimpleAD, Standard/Enterprise for MicrosoftAD"
+  type        = string
+  default     = "Small"
 }
 
 variable "ad_admin_password" {

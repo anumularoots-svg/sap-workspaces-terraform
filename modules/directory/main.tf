@@ -1,14 +1,16 @@
 ###############################################################################
-# MODULE: DIRECTORY SERVICE (AWS Managed Microsoft AD)
-# Provides user authentication for WorkSpaces
-# Note: Simple AD is NOT available in ap-south-1 (Mumbai)
+# MODULE: DIRECTORY SERVICE
+# Supports both SimpleAD (us-east-1, etc.) and MicrosoftAD (ap-south-1)
 ###############################################################################
 
-resource "aws_directory_service_directory" "managed_ad" {
+resource "aws_directory_service_directory" "main" {
   name     = var.directory_name
   password = var.admin_password
-  edition  = var.directory_size   # "Standard" or "Enterprise"
-  type     = "MicrosoftAD"
+  type     = var.directory_type
+
+  # SimpleAD uses 'size', MicrosoftAD uses 'edition'
+  size    = var.directory_type == "SimpleAD" ? var.directory_size : null
+  edition = var.directory_type == "MicrosoftAD" ? var.directory_size : null
 
   vpc_settings {
     vpc_id     = var.vpc_id
@@ -16,7 +18,7 @@ resource "aws_directory_service_directory" "managed_ad" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-managed-ad"
+    Name = "${var.project_name}-${var.environment}-directory"
   }
 }
 
@@ -26,6 +28,10 @@ resource "aws_directory_service_directory" "managed_ad" {
 variable "project_name" { type = string }
 variable "environment" { type = string }
 variable "directory_name" { type = string }
+variable "directory_type" {
+  type    = string
+  default = "SimpleAD"
+}
 variable "directory_size" { type = string }
 variable "admin_password" {
   type      = string
@@ -38,16 +44,11 @@ variable "subnet_ids" { type = list(string) }
 # OUTPUTS
 # ─────────────────────────────────────────────────────────────────────────────
 output "directory_id" {
-  description = "Directory ID"
-  value       = aws_directory_service_directory.managed_ad.id
+  value = aws_directory_service_directory.main.id
 }
-
 output "dns_ip_addresses" {
-  description = "DNS IP addresses of the directory"
-  value       = aws_directory_service_directory.managed_ad.dns_ip_addresses
+  value = aws_directory_service_directory.main.dns_ip_addresses
 }
-
 output "directory_name" {
-  description = "Directory FQDN"
-  value       = aws_directory_service_directory.managed_ad.name
+  value = aws_directory_service_directory.main.name
 }

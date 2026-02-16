@@ -3,7 +3,7 @@
 # Usage: terraform apply -var-file="environments/poc.tfvars"
 ###############################################################################
 
-aws_region   = "ap-south-1"
+aws_region   = "us-east-1"
 project_name = "sap-training-lab"
 environment  = "poc"
 
@@ -13,9 +13,10 @@ private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
 public_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24"]
 enable_nat_gateway   = true
 
-# Directory
+# Directory - Simple AD (available in us-east-1, cheaper & faster)
 directory_name = "sap-lab.local"
-directory_size = "Standard"  # MicrosoftAD: "Standard" or "Enterprise"
+directory_type = "SimpleAD"
+directory_size = "Small"
 
 # WorkSpaces - POC (2 for Free Tier testing)
 student_count             = 2
