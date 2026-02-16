@@ -110,6 +110,13 @@ variable "student_email_domain" {
   default     = "lancieretech.com"
 }
 
+variable "student_default_password" {
+  description = "Default password for student accounts (students should change on first login)"
+  type        = string
+  default     = "Student@2026"
+  sensitive   = true
+}
+
 variable "workspace_bundle_id" {
   description = "WorkSpaces bundle ID. Use 'wsb-clj85qzj1' for Standard Linux or run: aws workspaces describe-workspace-bundles --region ap-south-1"
   type        = string

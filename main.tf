@@ -94,6 +94,30 @@ module "directory" {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# MODULE: USER PROVISIONER (Create students in Simple AD via LDAP)
+# ─────────────────────────────────────────────────────────────────────────────
+module "user_provisioner" {
+  source = "./modules/user-provisioner"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+  vpc_id       = module.vpc.vpc_id
+  subnet_ids   = module.vpc.private_subnet_ids
+
+  directory_id       = module.directory.directory_id
+  directory_dns_ips  = tolist(module.directory.dns_ip_addresses)
+  directory_name     = var.directory_name
+  admin_password     = var.ad_admin_password
+
+  student_count            = var.student_count
+  student_prefix           = var.student_prefix
+  student_default_password = var.student_default_password
+
+  depends_on = [module.directory]
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # MODULE: AWS WORKSPACES
 # ─────────────────────────────────────────────────────────────────────────────
 module "workspaces" {
@@ -130,7 +154,7 @@ module "workspaces" {
   # Tags
   additional_tags = var.additional_tags
 
-  depends_on = [module.directory]
+  depends_on = [module.directory, module.user_provisioner]
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
